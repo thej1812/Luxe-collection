@@ -1,261 +1,244 @@
-/* 
-The comments here attempt to explain the implementations of spritesheet animations in Danger Crew.
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-We'll utilize a dynamic "pixel size" which will allow us to upscale the pixel art in even multiplications.
-EX: if an asset is designed as a 10px by 10px square, we can multiply by pixel size of 4 to enlarge the asset to 40px by 40px. This value can be adjusted per screen real estate. 
-*/
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f8f8;
+            color: #333;
+            overflow-x: hidden;
+        }
 
-:root {
-  --pixel-size: 4; /* Try playing with this value! */
-}
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 100vh;
+        }
 
+        /* Left Side */
+        .left-section {
+            background-color: #f8f8f8;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px;
+            position: relative;
+        }
 
-/* 
-   Allow pixel art images and canvas tags to scale up without losing quality
-*/
-.PixelArtImage {
-  	image-rendering: -moz-crisp-edges;
-  	image-rendering: -webkit-crisp-edges;
-  	image-rendering: pixelated;
-  	image-rendering: crisp-edges;
-}
+        .header-tags {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 60px;
+        }
 
+        .main-title {
+            font-size: clamp(48px, 6vw, 80px);
+            font-weight: 300;
+            line-height: 0.9;
+            letter-spacing: -2px;
+            margin-bottom: 40px;
+        }
 
-/* 
-	This is the square crop of the character, each frame designed at natural size 32x32. 
-	Multiplied by dynamic pixel size.
-*/
-.Character {
-	width: calc(var(--pixel-size) * 32px);
-	height: calc(var(--pixel-size) * 32px);
-	overflow: hidden;
-	position: relative;
-	margin: calc(var(--pixel-size) * 6px) auto;
-}
-.Character_shadow {
-	width: calc(var(--pixel-size) * 32px);
-	height: calc(var(--pixel-size) * 32px);
-	opacity: 0.25;
-	position: absolute;
-}
+        .red-dot {
+            color: #ff4444;
+            font-size: 80px;
+            line-height: 0;
+        }
 
-/* Set up a CSS Animation to move our spritesheet to the LEFT. */
-@keyframes walkAnimation {
-  from {
-    transform: translate3d(0%,0%,0);
-  }
-  to {
-    transform: translate3d(-100%,0%,0);
-  }
-}
+        .furniture-image {
+            width: 100%;
+            max-width: 400px;
+            height: 300px;
+            background: #e8e8e0;
+            border-radius: 8px;
+            margin: 60px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
 
-/* 
-	One spritesheet containing layout of 4 by 4 frames, each designed at 32x32.
-	Total width = 128px multiplied by dynamic pixel size.
-	The visible part is cropped out via .Character's overflow:hidden rule. This image lives *inside* the .Character container.
-*/
-.Character_sprite-sheet {
-	width: calc(var(--pixel-size) * 128px);
-	animation: walkAnimation 0.6s steps(4) infinite; 
-   /* ^ "Complete the animation in 4 distinct steps". We use 4 because each row of the spritesheet has 4 frames. */
-	position: absolute;
-	top:0;
-	left:0;
-   
-	display: none; /* For the sake of this demo, JS will control which character spritesheet is visible */
-}
-.Character_sprite-sheet.active {
-	display: block;
-}
+        .furniture-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
 
-/* 
-	Set up classes that change the y position of underlying spritesheet.
-	Spritesheet is designed with this layout:
-		D1 D2 D3 D4
-		R1 R2 R3 R4 (32px away from top)
-		U1 U2 U3 U4 (64px away from top)
-		L1 L2 L3 L4 (96px away from top)
+        .side-text {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #666;
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
 
-   EX: https://s3-us-west-2.amazonaws.com/s.cdpn.io/21542/WalkingDemo-HANK-2-SHEET.png
-*/
+        .social-icons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+        }
 
-.Character--walk-down .Character_sprite-sheet {
-	top: 0;
-}
-.Character--walk-right .Character_sprite-sheet {
-	top: calc(var(--pixel-size) * -32px);
-}
-.Character--walk-up .Character_sprite-sheet {
-	top: calc(var(--pixel-size) * -64px);
-}
-.Character--walk-left .Character_sprite-sheet {
-	top: calc(var(--pixel-size) * -96px);
-}
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #333;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: white;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
 
+        .social-icon:hover {
+            background-color: #ff4444;
+            transform: translateY(-2px);
+        }
 
-/* Demo UI Stuff ------------------------------------------------- */
-* {
-	box-sizing: border-box;
-}
-body {
-	margin: 0;
-	padding: 0;
-	background-image: linear-gradient(180deg, #5DCBE4 0%, #47BCE4 100%);
-	height: 100%;
-   min-height: 100vh;
-	padding-top: calc(var(--pixel-size) * 18px);
-	font-family: 'Dosis', sans-serif;
-}
-.Container {
-	max-width: calc(var(--pixel-size) * 100px);
-	margin: 0 auto;
-}
-.TitleImage {
-	width: calc(var(--pixel-size) * 95px);
-	display: block;
-	margin: 0 auto;
-}
-.NavigationBubble {
-	-webkit-appearance: none;
-	width: calc(var(--pixel-size) * 3px);
-	height: calc(var(--pixel-size) * 3px);
-	background: #2497cc;
-	border: 0;
-	outline: 0;
-	cursor: pointer;
-	padding:0;
-	margin-left: 0.5em;
-	margin-right: 0.5em;
-	box-sizing:content-box;
-}
-.NavigationBubble:hover:not(.active) {
-	opacity: 0.9;
-}
-.NavigationBubble.active {
-	background: #fff;
-}
-.NextSpritesheetButton {
-	-webkit-appearance: none;
-	border:0;
-	background:none;
-	padding: 1em;
-	position: absolute;
-	top: 50%;
-}
-.NextSpritesheetButton--prev {
-	left: 0;
-}
-.NextSpritesheetButton--next {
-	right: 0;
-}
-.NextSpritesheetButton:hover {
-	cursor: pointer;
-	background: rgba(255,255,255,0.2);
-}
-.NextSpritesheetButton:focus {
-	outline:none;
-}
-.NextSpritesheetButton svg {
-	display: block;
-	width: calc(var(--pixel-size) * 4px);
-}
-.DirectionArrow {
-	background: none;
-	outline: 0;
-	border: 0;
-	cursor: pointer;
-}
-.DirectionArrow svg {
-	display: block;
-	width: calc(var(--pixel-size) * 13px);
-}
-.DirectionArrow--active .Arrow_outline-top { stroke: #5268ec; }
-.DirectionArrow--active .Arrow_surface { stroke: #639bff; }
-.DirectionArrow--active .Arrow_outline-bottom { stroke: #164496; }
-.DirectionArrow--active .Arrow_edge { stroke: #7baaff; }
-.DirectionArrow--active .Arrow_front { stroke: #4c8bfd }
-.DirectionArrow--active .Arrow_arrow-inset { stroke: #fff; }
-.DirectionArrow--active .Arrow_arrow-body { stroke: #fff; }
-.SpritesheetSlider {
-	position: relative;
-	margin-bottom: calc(var(--pixel-size) * 10px);	
-}
-.flex-center {
-	display:flex;
-	justify-content: center;
-}
+        /* Right Side */
+        .right-section {
+            background-color: #f0f0f0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-/* New styling for character selection page */
-.SelectionTitle {
-    text-align: center;
-    color: #fff;
-    margin-bottom: calc(var(--pixel-size) * 5px);
-    text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
-}
+        .right-text {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            font-size: clamp(24px, 3vw, 40px);
+            font-weight: 300;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            color: #333;
+            position: absolute;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
 
-.CharacterInfo {
-    text-align: center;
-    margin: calc(var(--pixel-size) * 5px) 0;
-}
+        .chair-image {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ff8c42, #ff6b1a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
 
-#characterName {
-    color: white;
-    font-size: calc(var(--pixel-size) * 5px);
-    margin: 0;
-    text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
-}
+        .chair-image img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.2));
+        }
 
-.ChooseButtonWrapper {
-    display: flex;
-    justify-content: center;
-    margin: calc(var(--pixel-size) * 10px) 0;
-}
+        /* Floating Elements */
+        .floating-circle {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            top: 20%;
+            left: 10%;
+            animation: float 6s ease-in-out infinite;
+        }
 
-.ChooseButton {
-    background-color: #ff9f43;
-    border: none;
-    border-radius: calc(var(--pixel-size) * 2px);
-    color: white;
-    padding: calc(var(--pixel-size) * 3px) calc(var(--pixel-size) * 6px);
-    font-size: calc(var(--pixel-size) * 4px);
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 calc(var(--pixel-size) * 1px) 0 #d68636;
-    transition: all 0.2s ease;
-}
+        .floating-square {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            bottom: 30%;
+            right: 20%;
+            animation: float 8s ease-in-out infinite reverse;
+        }
 
-.ChooseButton:hover {
-    background-color: #ffa953;
-    transform: translateY(calc(var(--pixel-size) * -0.5px));
-}
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
 
-.ChooseButton:active {
-    background-color: #e8924d;
-    transform: translateY(calc(var(--pixel-size) * 0.5px));
-    box-shadow: 0 0 0 #d68636;
-}
+        /* Responsive Design */
+        @media (max-width: 968px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto;
+            }
+            
+            .left-section {
+                padding: 30px;
+            }
+            
+            .right-section {
+                min-height: 60vh;
+            }
+            
+            .side-text {
+                writing-mode: horizontal-tb;
+                text-orientation: mixed;
+                position: static;
+                transform: none;
+                margin: 20px 0;
+            }
+            
+            .right-text {
+                writing-mode: horizontal-tb;
+                text-orientation: mixed;
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                transform: none;
+            }
+            
+            .social-icons {
+                flex-direction: row;
+                position: static;
+                justify-content: center;
+                margin-top: 30px;
+            }
+        }
 
-footer {
-   margin-top: calc(var(--pixel-size) * 20px);
-}
-@media (min-height: 515px) {
-   footer {
-      position: absolute;
-      left:0;
-      right:0;
-      bottom:0;
-   }
-}
-footer p {
-	color: #fff;
-	text-align: center;
-	padding: 0.8em;
-	font-size: 18px;
-   margin: 0;
-   border-top: 1px solid rgba(255,255,255,0.4)
-}
-footer a {
-	font-weight:bold;
-	font-size: 18px;
-	color: #164496;
-}
+        @media (max-width: 640px) {
+            .left-section {
+                padding: 20px;
+            }
+            
+            .main-title {
+                font-size: 40px;
+            }
+            
+            .header-tags {
+                font-size: 10px;
+                margin-bottom: 30px;
+            }
+            
+            .furniture-image {
+                height: 200px;
+                margin: 30px 0;
+            }
+        }
